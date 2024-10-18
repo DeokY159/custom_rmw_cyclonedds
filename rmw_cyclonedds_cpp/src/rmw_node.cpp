@@ -751,7 +751,6 @@ extern "C" rmw_ret_t rmw_event_set_callback(
       {
         return RMW_RET_INVALID_ARGUMENT;
       }
-
   }
   return RMW_RET_OK;
 }
@@ -4068,7 +4067,6 @@ extern "C" rmw_ret_t rmw_take_event(
     case RMW_EVENT_TYPE_MAX: {
         break;
       }
-
   }
   *taken = false;
   return RMW_RET_ERROR;
