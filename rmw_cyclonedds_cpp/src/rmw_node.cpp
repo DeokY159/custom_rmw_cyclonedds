@@ -88,6 +88,10 @@
 #include "serdata.hpp"
 #include "demangle.hpp"
 
+//modified point
+#include <fstream>
+#include <iomanip>
+
 using namespace std::literals::chrono_literals;
 
 /* Security must be enabled when compiling and requires cyclone to support QOS property lists */
@@ -481,6 +485,34 @@ static void dds_listener_callback(dds_entity_t entity, void * arg)
   auto data = static_cast<user_callback_data_t *>(arg);
 
   std::lock_guard<std::mutex> guard(data->mutex);
+  
+  //modified point
+  dds_entity_t topic = dds_get_topic(entity);
+  std::vector<char> namebuf(256);
+  dds_return_t rc = dds_get_name(topic, namebuf.data(), namebuf.size());
+  std::string topic_name;
+  if (rc > 0 && static_cast<size_t>(rc) < namebuf.size()) {
+    topic_name = std::string(namebuf.data(), rc);
+  } else {
+    topic_name = "<unknown>";
+  }
+
+  try {
+    auto now = std::chrono::system_clock::now();
+    auto t_c = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+  #ifdef _WIN32
+    localtime_s(&tm, &t_c);
+  #else
+    localtime_r(&t_c, &tm);
+  #endif
+    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
+             << "\tdata_available\t" << topic_name
+             << std::endl;
+  } catch (...) {
+    // Exception ignore
+  }
 
   if (data->callback) {
     data->callback(data->user_data, 1);
@@ -489,6 +521,7 @@ static void dds_listener_callback(dds_entity_t entity, void * arg)
   }
 }
 
+/*
 #define MAKE_DDS_EVENT_CALLBACK_FN(event_type, EVENT_TYPE) \
   static void on_ ## event_type ## _fn( \
     dds_entity_t entity, \
@@ -515,6 +548,277 @@ MAKE_DDS_EVENT_CALLBACK_FN(requested_incompatible_qos, REQUESTED_INCOMPATIBLE_QO
 MAKE_DDS_EVENT_CALLBACK_FN(sample_lost, SAMPLE_LOST)
 MAKE_DDS_EVENT_CALLBACK_FN(offered_incompatible_qos, OFFERED_INCOMPATIBLE_QOS)
 MAKE_DDS_EVENT_CALLBACK_FN(liveliness_changed, LIVELINESS_CHANGED)
+*/
+static void on_requested_deadline_missed_fn(dds_entity_t entity, const dds_requested_deadline_missed_status_t status, void * arg)
+{
+  (void)status;
+  (void)entity;
+  auto data = static_cast<user_callback_data_t *>(arg);
+  std::lock_guard<std::mutex> guard(data->mutex);
+  // modified point
+  try {
+    auto now = std::chrono::system_clock::now();
+    auto t_c = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+  #ifdef _WIN32
+    localtime_s(&tm, &t_c);
+  #else
+    localtime_r(&t_c, &tm);
+  #endif
+    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
+             << '\t' << "requested_deadline_missed"
+             << std::endl;
+  } catch (...) {
+    // Exception ignore
+  }
+  // ------------------------------------------------
+  auto cb = data->event_callback[DDS_REQUESTED_DEADLINE_MISSED_STATUS_ID];
+  if (cb) {
+    cb(data->event_data[DDS_REQUESTED_DEADLINE_MISSED_STATUS_ID], 1);
+  } else {
+    data->event_unread_count[DDS_REQUESTED_DEADLINE_MISSED_STATUS_ID]++;
+  } 
+}
+
+static void on_liveliness_lost_fn(dds_entity_t entity, const dds_liveliness_lost_status_t status, void * arg)
+{
+  (void)status;
+  (void)entity;
+  auto data = static_cast<user_callback_data_t *>(arg);
+  std::lock_guard<std::mutex> guard(data->mutex);
+  // modified point
+  try {
+    auto now = std::chrono::system_clock::now();
+    auto t_c = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+  #ifdef _WIN32
+    localtime_s(&tm, &t_c);
+  #else
+    localtime_r(&t_c, &tm);
+  #endif
+    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
+             << '\t' << "liveliness_lost"
+             << std::endl;
+  } catch (...) {
+    // Exception ignore
+  }
+  // ------------------------------------------------
+  auto cb = data->event_callback[DDS_LIVELINESS_LOST_STATUS_ID];
+  if (cb) {
+    cb(data->event_data[DDS_LIVELINESS_LOST_STATUS_ID], 1);
+  } else {
+    data->event_unread_count[DDS_LIVELINESS_LOST_STATUS_ID]++;
+  } 
+}
+
+static void on_offered_deadline_missed_fn(dds_entity_t entity, const dds_offered_deadline_missed_status_t status, void * arg)
+{
+  (void)status;
+  (void)entity;
+  auto data = static_cast<user_callback_data_t *>(arg);
+  std::lock_guard<std::mutex> guard(data->mutex);
+  /*
+  // modified point
+  try {
+    auto now = std::chrono::system_clock::now();
+    auto t_c = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+  #ifdef _WIN32
+    localtime_s(&tm, &t_c);
+  #else
+    localtime_r(&t_c, &tm);
+  #endif
+    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
+             << '\t' << "offered_deadline_missed"
+             << std::endl;
+  } catch (...) {
+    // Exception ignore
+  }
+  // ------------------------------------------------
+  */
+  auto cb = data->event_callback[DDS_OFFERED_DEADLINE_MISSED_STATUS_ID];
+  if (cb) {
+    cb(data->event_data[DDS_OFFERED_DEADLINE_MISSED_STATUS_ID], 1);
+  } else {
+    data->event_unread_count[DDS_OFFERED_DEADLINE_MISSED_STATUS_ID]++;
+  } 
+}
+
+static void on_requested_incompatible_qos_fn(dds_entity_t entity, const dds_requested_incompatible_qos_status_t status, void * arg)
+{
+  (void)status;
+  (void)entity;
+  auto data = static_cast<user_callback_data_t *>(arg);
+  std::lock_guard<std::mutex> guard(data->mutex);
+  // modified point
+  try {
+    auto now = std::chrono::system_clock::now();
+    auto t_c = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+  #ifdef _WIN32
+    localtime_s(&tm, &t_c);
+  #else
+    localtime_r(&t_c, &tm);
+  #endif
+    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
+             << '\t' << "requested_incompatible_qos"
+             << ' ' << status.last_policy_id
+             << std::endl;
+  } catch (...) {
+    // Exception ignore
+  }
+  // ------------------------------------------------
+  auto cb = data->event_callback[DDS_REQUESTED_INCOMPATIBLE_QOS_STATUS_ID];
+  if (cb) {
+    cb(data->event_data[DDS_REQUESTED_INCOMPATIBLE_QOS_STATUS_ID], 1);
+  } else {
+    data->event_unread_count[DDS_REQUESTED_INCOMPATIBLE_QOS_STATUS_ID]++;
+  } 
+}
+
+static void on_sample_lost_fn(dds_entity_t entity, const dds_sample_lost_status_t status, void * arg)
+{
+  (void)status;
+  (void)entity;
+  auto data = static_cast<user_callback_data_t *>(arg);
+  std::lock_guard<std::mutex> guard(data->mutex);
+  // modified point
+  try {
+    auto now = std::chrono::system_clock::now();
+    auto t_c = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+  #ifdef _WIN32
+    localtime_s(&tm, &t_c);
+  #else
+    localtime_r(&t_c, &tm);
+  #endif
+    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
+             << '\t' << "sample_lost"
+             << std::endl;
+  } catch (...) {
+    // Exception ignore
+  }
+  // ------------------------------------------------
+  auto cb = data->event_callback[DDS_SAMPLE_LOST_STATUS_ID];
+  if (cb) {
+    cb(data->event_data[DDS_SAMPLE_LOST_STATUS_ID], 1);
+  } else {
+    data->event_unread_count[DDS_SAMPLE_LOST_STATUS_ID]++;
+  } 
+}
+
+static void on_offered_incompatible_qos_fn(dds_entity_t entity, const dds_offered_incompatible_qos_status_t status, void * arg)
+{
+  (void)status;
+  (void)entity;
+  auto data = static_cast<user_callback_data_t *>(arg);
+  std::lock_guard<std::mutex> guard(data->mutex);
+  /*
+  // modified point
+  try {
+    auto now = std::chrono::system_clock::now();
+    auto t_c = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+  #ifdef _WIN32
+    localtime_s(&tm, &t_c);
+  #else
+    localtime_r(&t_c, &tm);
+  #endif
+    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
+             << '\t' << "offered_incompatible_qos"
+             << '\t' << status.total_count
+             << ' ' << status.total_count_change
+             << ' ' << status.last_policy_id
+             << std::endl;
+  } catch (...) {
+    // Exception ignore
+  }
+  // ------------------------------------------------
+  */
+  auto cb = data->event_callback[DDS_OFFERED_INCOMPATIBLE_QOS_STATUS_ID];
+  if (cb) {
+    cb(data->event_data[DDS_OFFERED_INCOMPATIBLE_QOS_STATUS_ID], 1);
+  } else {
+    data->event_unread_count[DDS_OFFERED_INCOMPATIBLE_QOS_STATUS_ID]++;
+  } 
+}
+
+static void on_liveliness_changed_fn(dds_entity_t entity, const dds_liveliness_changed_status_t status, void * arg)
+{
+  (void)status;
+  (void)entity;
+  auto data = static_cast<user_callback_data_t *>(arg);
+  std::lock_guard<std::mutex> guard(data->mutex);
+  /*
+  // modified point
+  try {
+    auto now = std::chrono::system_clock::now();
+    auto t_c = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+  #ifdef _WIN32
+    localtime_s(&tm, &t_c);
+  #else
+    localtime_r(&t_c, &tm);
+  #endif
+    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
+             << "\tliveliness_changed"
+             << "\talive_count=" << status.alive_count
+             << " not_alive_count=" << status.not_alive_count
+             << " alive_count_change=" << status.alive_count_change
+             << " not_alive_count_change=" << status.not_alive_count_change
+             << std::endl;
+  } catch (...) {
+    // Exception ignore
+  }
+  // ------------------------------------------------
+  */
+  auto cb = data->event_callback[DDS_LIVELINESS_CHANGED_STATUS_ID];
+  if (cb) {
+    cb(data->event_data[DDS_LIVELINESS_CHANGED_STATUS_ID], 1);
+  } else {
+    data->event_unread_count[DDS_LIVELINESS_CHANGED_STATUS_ID]++;
+  } 
+}
+static void on_subscription_matched_fn(
+  dds_entity_t reader,
+  const dds_subscription_matched_status_t status,
+  void * arg)
+{
+  (void)reader;
+  auto data = static_cast<user_callback_data_t *>(arg);
+
+  std::lock_guard<std::mutex> guard(data->mutex);
+
+  try {
+    auto now = std::chrono::system_clock::now();
+    auto t_c = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+  #ifdef _WIN32
+    localtime_s(&tm, &t_c);
+  #else
+    localtime_r(&t_c, &tm);
+  #endif
+
+    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
+             << "\tsubscription_matched"
+             << std::endl;
+  } catch (...) {
+  }
+  auto cb = data->event_callback[DDS_SUBSCRIPTION_MATCHED_STATUS_ID];
+  if (cb) {
+    cb(data->event_data[DDS_SUBSCRIPTION_MATCHED_STATUS_ID], 1);
+  } else {
+    data->event_unread_count[DDS_SUBSCRIPTION_MATCHED_STATUS_ID]++;
+  }
+}
 
 static void listener_set_event_callbacks(dds_listener_t * l, void * arg)
 {
@@ -569,6 +873,7 @@ extern "C" rmw_ret_t rmw_subscription_set_on_new_message_callback(
     callback(user_data, events);
     data->unread_count = 0;
   }
+
 
   return RMW_RET_OK;
 }
@@ -2527,7 +2832,6 @@ extern "C" rmw_ret_t rmw_publisher_count_matched_subscriptions(
   if (dds_get_publication_matched_status(pub->enth, &status) < 0) {
     return RMW_RET_ERROR;
   }
-
   *subscription_count = status.current_count;
   return RMW_RET_OK;
 }
@@ -2795,6 +3099,8 @@ static CddsSubscription * create_cdds_subscription(
   dds_lset_data_available_arg(listener, dds_listener_callback, &sub->user_callback_data, false);
   // Set the corresponding callbacks to listen for events
   listener_set_event_callbacks(listener, &sub->user_callback_data);
+  //modified point
+  dds_lset_subscription_matched_arg(listener, on_subscription_matched_fn, &sub->user_callback_data, false);
 
   if (topic < 0) {
     set_error_message_from_create_topic(topic, fqtopic_name);
@@ -2996,7 +3302,6 @@ extern "C" rmw_ret_t rmw_subscription_count_matched_publishers(
   if (dds_get_subscription_matched_status(sub->enth, &status) < 0) {
     return RMW_RET_ERROR;
   }
-
   *publisher_count = status.current_count;
   return RMW_RET_OK;
 }
