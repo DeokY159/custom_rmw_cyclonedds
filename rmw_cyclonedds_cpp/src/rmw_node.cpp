@@ -496,7 +496,7 @@ static void dds_listener_callback(dds_entity_t entity, void * arg)
   #else
     localtime_r(&t_c, &tm);
   #endif
-    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    std::ofstream log_file("/tmp/DRSFuzz/cyclone_listener.log", std::ios::app);
     log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
              << "\tdata_available\t" << topic_name
              << std::endl;
@@ -558,7 +558,7 @@ static void on_requested_deadline_missed_fn(dds_entity_t entity, const dds_reque
   #else
     localtime_r(&t_c, &tm);
   #endif
-    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    std::ofstream log_file("/tmp/DRSFuzz/cyclone_listener.log", std::ios::app);
     log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
              << '\t' << "requested_deadline_missed"
              << std::endl;
@@ -590,7 +590,7 @@ static void on_liveliness_lost_fn(dds_entity_t entity, const dds_liveliness_lost
   #else
     localtime_r(&t_c, &tm);
   #endif
-    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    std::ofstream log_file("/tmp/DRSFuzz/cyclone_listener.log", std::ios::app);
     log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
              << '\t' << "liveliness_lost"
              << std::endl;
@@ -623,7 +623,7 @@ static void on_offered_deadline_missed_fn(dds_entity_t entity, const dds_offered
   #else
     localtime_r(&t_c, &tm);
   #endif
-    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    std::ofstream log_file("/tmp/DRSFuzz/cyclone_listener.log", std::ios::app);
     log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
              << '\t' << "offered_deadline_missed"
              << std::endl;
@@ -656,7 +656,7 @@ static void on_requested_incompatible_qos_fn(dds_entity_t entity, const dds_requ
   #else
     localtime_r(&t_c, &tm);
   #endif
-    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    std::ofstream log_file("/tmp/DRSFuzz/cyclone_listener.log", std::ios::app);
     log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
              << '\t' << "requested_incompatible_qos\t"
              << status.last_policy_id
@@ -689,7 +689,7 @@ static void on_sample_lost_fn(dds_entity_t entity, const dds_sample_lost_status_
   #else
     localtime_r(&t_c, &tm);
   #endif
-    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    std::ofstream log_file("/tmp/DRSFuzz/cyclone_listener.log", std::ios::app);
     log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
              << '\t' << "sample_lost"
              << std::endl;
@@ -722,7 +722,7 @@ static void on_offered_incompatible_qos_fn(dds_entity_t entity, const dds_offere
   #else
     localtime_r(&t_c, &tm);
   #endif
-    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    std::ofstream log_file("/tmp/DRSFuzz/cyclone_listener.log", std::ios::app);
     log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
              << '\t' << "offered_incompatible_qos\t << status.last_policy_id
              << std::endl;
@@ -756,7 +756,7 @@ static void on_liveliness_changed_fn(dds_entity_t entity, const dds_liveliness_c
   #else
     localtime_r(&t_c, &tm);
   #endif
-    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    std::ofstream log_file("/tmp/DRSFuzz/cyclone_listener.log", std::ios::app);
     log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
              << "\tliveliness_changed" << std::endl;
   } catch (...) {
@@ -788,7 +788,7 @@ static void on_inconsistent_topic_fn(dds_entity_t entity, const dds_inconsistent
   #else
     localtime_r(&t_c, &tm);
   #endif
-    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    std::ofstream log_file("/tmp/DRSFuzz/cyclone_listener.log", std::ios::app);
     log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
              << "\tinconsistent_topic" << std::endl;
   } catch (...) {
@@ -820,7 +820,7 @@ static void on_subscription_matched_fn( dds_entity_t entity, const dds_subscript
     localtime_r(&t_c, &tm);
   #endif
 
-    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    std::ofstream log_file("/tmp/DRSFuzz/cyclone_listener.log", std::ios::app);
     log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
              << "\tsubscription_matched"
              << std::endl;
@@ -852,7 +852,7 @@ static void on_publication_matched_fn( dds_entity_t entity, const dds_publicatio
     localtime_r(&t_c, &tm);
   #endif
 
-    std::ofstream log_file("/tmp/cyclone_listener.log", std::ios::app);
+    std::ofstream log_file("/tmp/DRSFuzz/cyclone_listener.log", std::ios::app);
     log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
              << "\tpublication_matched"
              << std::endl;
